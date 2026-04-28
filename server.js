@@ -1,43 +1,52 @@
 const express = require('express');
-const { createProxyMiddleware } = require('http-proxy-middleware');
 const cors = require('cors');
+const axios = require('axios');
+const { URL } = require('url');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-
 app.use(cors());
 
-app.get('/', (req, res) => {
-  res.send('AI Demo Drop Proxy — Running ✅');
-});
+app.get('/', (req, res) => res.send('Proxy Running ✅'));
 
-app.use('/proxy', (req, res, next) => {
+app.use('/proxy', async (req, res) => {
   const targetUrl = req.query.url;
-  if (!targetUrl) return res.status(400).send('Missing ?url= parameter');
+  if (!targetUrl) return res.status(400).send('Missing ?url=');
 
-  let target;
-  try { target = new URL(targetUrl); } 
-  catch (e) { return res.status(400).send('Invalid URL'); }
+  try {
+    const parsed = new URL(targetUrl);
+    const baseUrl = parsed.origin;
 
-  const proxy = createProxyMiddleware({
-    target: target.origin,
-    changeOrigin: true,
-    selfHandleResponse: false,
-    pathRewrite: () => target.pathname + target.search,
-    on: {
-      proxyRes: (proxyRes) => {
-        delete proxyRes.headers['x-frame-options'];
-        delete proxyRes.headers['X-Frame-Options'];
-        delete proxyRes.headers['content-security-policy'];
-        delete proxyRes.headers['Content-Security-Policy'];
-        proxyRes.headers['Access-Control-Allow-Origin'] = '*';
+    const response = await axios.get(targetUrl, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120 Safari/537.36',
+        'Accept': 'text/html,application/xhtml+xml,*/*;q=0.8',
+        'Accept-Language': 'en-US,en;q=0.5',
       },
-      error: (err, req, res) => {
-        res.status(500).send('Proxy error: ' + err.message);
-      }
+      responseType: 'arraybuffer',
+      timeout: 10000,
+    });
+
+    const contentType = response.headers['content-type'] || '';
+    delete response.headers['x-frame-options'];
+    delete response.headers['content-security-policy'];
+    response.headers['access-control-allow-origin'] = '*';
+
+    if (contentType.includes('text/html')) {
+      let html = response.data.toString('utf8');
+      // Rewrite absolute paths to go through proxy
+      html = html.replace(/(href|src|action)="\/([^"]*?)"/g, `$1="${baseUrl}/$2"`);
+      html = html.replace(/(href|src|action)='\/([^']*?)'/g, `$1='${baseUrl}/$2'`);
+      res.set(response.headers);
+      res.send(html);
+    } else {
+      res.set(response.headers);
+      res.send(response.data);
     }
-  });
-  proxy(req, res, next);
+
+  } catch (err) {
+    res.status(500).send('Proxy error: ' + err.message);
+  }
 });
 
-app.listen(PORT, () => console.log(`Proxy running on port ${PORT}`));
+app.listen(PORT, () => console.log(`Proxy on port ${PORT}`));
