@@ -51,7 +51,16 @@ app.use('/proxy', async (req, res) => {
 
 
 
+app.options('/chat', (req, res) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Headers', 'Content-Type');
+  res.header('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.sendStatus(200);
+});
+
 app.post('/chat', async (req, res) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Headers', 'Content-Type');
   try {
     const response = await axios.post('https://api.vapi.ai/chat', req.body, {
       headers: {
