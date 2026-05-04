@@ -6,7 +6,7 @@ const { URL } = require('url');
 const app = express();
 const PORT = process.env.PORT || 3000;
 app.use(cors());
-
+app.use(express.json());
 app.get('/', (req, res) => res.send('Proxy Running ✅'));
 
 app.use('/proxy', async (req, res) => {
@@ -49,4 +49,19 @@ app.use('/proxy', async (req, res) => {
   }
 });
 
+
+
+app.post('/chat', async (req, res) => {
+  try {
+    const response = await axios.post('https://api.vapi.ai/chat', req.body, {
+      headers: {
+        'Authorization': 'Bearer 8dbabe5c-2e95-4df7-a63e-0a9127c6d1c5',
+        'Content-Type': 'application/json'
+      }
+    });
+    res.json(response.data);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
 app.listen(PORT, () => console.log(`Proxy on port ${PORT}`));
