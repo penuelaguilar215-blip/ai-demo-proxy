@@ -88,7 +88,8 @@ const response = await axios.post('https://api.vapi.ai/chat', body, {
 });
     res.json(response.data);
   } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
+  console.error('Vapi error:', err.response ? JSON.stringify(err.response.data) : err.message);
+  res.status(500).json({ error: err.response ? err.response.data : err.message });
+}
 });
 app.listen(PORT, () => console.log(`Proxy on port ${PORT}`));
