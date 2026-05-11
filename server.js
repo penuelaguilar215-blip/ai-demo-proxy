@@ -56,21 +56,19 @@ app.post('/chat', async (req, res) => {
   res.header('Access-Control-Allow-Origin', '*');
   res.header('Access-Control-Allow-Headers', 'Content-Type');
   try {
-    const response = await axios.post('https://api.anthropic.com/v1/messages', {
-      model: 'claude-haiku-4-5-20251001',
-      max_tokens: 1024,
-      system: req.body.systemPrompt || 'You are a helpful assistant.',
-      messages: [{ role: 'user', content: req.body.input }]
+    const response = await axios.post('https://api.vapi.ai/chat', {
+      assistantId: req.body.assistantId,
+      input: req.body.input,
+      previousMessages: req.body.previousMessages || []
     }, {
       headers: {
-        'x-api-key': process.env.ANTHROPIC_API_KEY,
-        'anthropic-version': '2023-06-01',
+        'Authorization': 'Bearer 8dbabe5c-2e95-4df7-a63e-0a9127c6d1c5',
         'Content-Type': 'application/json'
       }
     });
-    res.json({ output: [{ role: 'assistant', content: response.data.content[0].text }] });
+    res.json(response.data);
   } catch (err) {
-    console.error('Error:', err.response ? JSON.stringify(err.response.data) : err.message);
+    console.error('Vapi error:', err.response ? JSON.stringify(err.response.data) : err.message);
     res.status(500).json({ error: err.message });
   }
 });
