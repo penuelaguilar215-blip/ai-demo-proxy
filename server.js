@@ -1,4 +1,4 @@
-const express = require('express');
+  const express = require('express');
 const cors = require('cors');
 const axios = require('axios');
 const { URL } = require('url');
@@ -62,7 +62,11 @@ app.post('/chat', async (req, res) => {
   res.header('Access-Control-Allow-Origin', '*');
   res.header('Access-Control-Allow-Headers', 'Content-Type');
   try {
-    const response = await axios.post('https://api.vapi.ai/chat', req.body, {
+    const body = {
+      assistantId: req.body.assistantId,
+      input: req.body.input
+    };
+    const response = await axios.post('https://api.vapi.ai/chat', body, {
       headers: {
         'Authorization': 'Bearer 8dbabe5c-2e95-4df7-a63e-0a9127c6d1c5',
         'Content-Type': 'application/json'
