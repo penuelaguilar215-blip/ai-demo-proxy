@@ -62,11 +62,15 @@ app.post('/chat', async (req, res) => {
   res.header('Access-Control-Allow-Origin', '*');
   res.header('Access-Control-Allow-Headers', 'Content-Type');
   try {
-    const body = {
+    const response = await axios.post('https://api.vapi.ai/chat', {
       assistantId: req.body.assistantId,
-      input: req.body.input
-    };
-    const response = await axios.post('https://api.vapi.ai/chat', body, {
+      input: req.body.input,
+      assistantOverrides: {
+        model: {
+          systemPrompt: req.body.systemPrompt || ''
+        }
+      }
+    }, {
       headers: {
         'Authorization': 'Bearer 8dbabe5c-2e95-4df7-a63e-0a9127c6d1c5',
         'Content-Type': 'application/json'
