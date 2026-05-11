@@ -62,20 +62,30 @@ app.post('/chat', async (req, res) => {
   res.header('Access-Control-Allow-Origin', '*');
   res.header('Access-Control-Allow-Headers', 'Content-Type');
   try {
-    const response = await axios.post('https://api.vapi.ai/chat', {
-      assistantId: req.body.assistantId,
-      input: req.body.input,
-      assistantOverrides: {
-        model: {
-          systemPrompt: req.body.systemPrompt || ''
+    const body = {
+  assistantId: req.body.assistantId,
+  input: req.body.input
+};
+
+if (req.body.systemPrompt) {
+  body.assistantOverrides = {
+    model: {
+      messages: [
+        {
+          role: 'system',
+          content: req.body.systemPrompt
         }
-      }
-    }, {
-      headers: {
-        'Authorization': 'Bearer 8dbabe5c-2e95-4df7-a63e-0a9127c6d1c5',
-        'Content-Type': 'application/json'
-      }
-    });
+      ]
+    }
+  };
+}
+
+const response = await axios.post('https://api.vapi.ai/chat', body, {
+  headers: {
+    'Authorization': 'Bearer 8dbabe5c-2e95-4df7-a63e-0a9127c6d1c5',
+    'Content-Type': 'application/json'
+  }
+});
     res.json(response.data);
   } catch (err) {
     res.status(500).json({ error: err.message });
