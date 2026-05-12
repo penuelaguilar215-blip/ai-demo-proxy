@@ -56,18 +56,23 @@ app.post('/chat', async (req, res) => {
   res.header('Access-Control-Allow-Origin', '*');
   res.header('Access-Control-Allow-Headers', 'Content-Type');
   try {
-    const response = await axios.post('https://api.vapi.ai/chat', {
-      assistantId: req.body.assistantId,
-      input: req.body.input
+    const response = await axios.post('https://api.openai.com/v1/chat/completions', {
+      model: 'gpt-3.5-turbo',
+      messages: [
+        { role: 'system', content: req.body.systemPrompt || 'You are a helpful assistant.' },
+        { role: 'user', content: req.body.input }
+      ],
+      max_tokens: 500
     }, {
       headers: {
-        'Authorization': 'Bearer 8dbabe5c-2e95-4df7-a63e-0a9127c6d1c5',
+        'Authorization': 'Bearer ' + process.env.OPENAI_API_KEY,
         'Content-Type': 'application/json'
       }
     });
-    res.json(response.data);
+    const reply = response.data.choices[0].message.content;
+    res.json({ output: [{ role: 'assistant', content: reply }] });
   } catch (err) {
-    console.error('Vapi error:', err.response ? JSON.stringify(err.response.data) : err.message);
+    console.error('OpenAI error:', err.response ? JSON.stringify(err.response.data) : err.message);
     res.status(500).json({ error: err.message });
   }
 });
