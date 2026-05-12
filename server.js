@@ -57,7 +57,7 @@ app.post('/chat', async (req, res) => {
   res.header('Access-Control-Allow-Headers', 'Content-Type');
   try {
     const response = await axios.post('https://api.groq.com/openai/v1/chat/completions', {
-      model: 'llama3-8b-8192',
+      model: 'llama-3.3-70b-versatile',
       messages: [
         { role: 'system', content: req.body.systemPrompt || 'You are a helpful assistant.' },
         { role: 'user', content: req.body.input }
