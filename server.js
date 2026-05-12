@@ -58,8 +58,7 @@ app.post('/chat', async (req, res) => {
   try {
     const response = await axios.post('https://api.vapi.ai/chat', {
       assistantId: req.body.assistantId,
-      input: req.body.input,
-      previousMessages: req.body.previousMessages || []
+      input: req.body.input
     }, {
       headers: {
         'Authorization': 'Bearer 8dbabe5c-2e95-4df7-a63e-0a9127c6d1c5',
