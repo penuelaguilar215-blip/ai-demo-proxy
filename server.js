@@ -78,23 +78,24 @@ app.post('/chat', async (req, res) => {
   res.header('Access-Control-Allow-Origin', '*');
   res.header('Access-Control-Allow-Headers', 'Content-Type');
   try {
-    const response = await axios.post('https://api.groq.com/openai/v1/chat/completions', {
-      model: 'llama-3.3-70b-versatile',
+    const response = await axios.post('https://api.anthropic.com/v1/messages', {
+      model: 'claude-haiku-4-5-20251001',
+      max_tokens: 1024,
+      system: req.body.systemPrompt || 'You are a helpful assistant.',
       messages: [
-        { role: 'system', content: req.body.systemPrompt || 'You are a helpful assistant.' },
         { role: 'user', content: req.body.input }
-      ],
-      max_tokens: 500
+      ]
     }, {
       headers: {
-        'Authorization': 'Bearer ' + process.env.GROQ_API_KEY,
+        'x-api-key': process.env.ANTHROPIC_API_KEY,
+        'anthropic-version': '2023-06-01',
         'Content-Type': 'application/json'
       }
     });
-    const reply = response.data.choices[0].message.content;
+    const reply = response.data.content[0].text;
     res.json({ output: [{ role: 'assistant', content: reply }] });
   } catch (err) {
-    console.error('Groq error:', err.response ? JSON.stringify(err.response.data) : err.message);
+    console.error('Anthropic error:', err.response ? JSON.stringify(err.response.data) : err.message);
     res.status(500).json({ error: err.message });
   }
 });
