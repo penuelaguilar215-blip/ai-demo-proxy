@@ -8,13 +8,65 @@ const PORT = process.env.PORT || 3000;
 app.use(cors());
 app.use(express.json({ limit: '10mb' }));
 
+// ---- RATE LIMITING ----
+const ADMIN_KEY = process.env.ADMIN_KEY || 'adamo-admin-2024';
+const MAX_DEMOS = 3;
+const WINDOW_MS = 24 * 60 * 60 * 1000; // 24 hours
+const ipAttempts = {}; // { ip: { count, firstAttempt } }
+
+function getRealIp(req) {
+  return (
+    req.headers['x-forwarded-for']?.split(',')[0]?.trim() ||
+    req.headers['x-real-ip'] ||
+    req.socket.remoteAddress ||
+    'unknown'
+  );
+}
+
+function isAdmin(req) {
+  const key = req.headers['x-admin-key'] || req.query.adminKey;
+  return key === ADMIN_KEY;
+}
+
+function checkRateLimit(req, res, next) {
+  // Admin bypasses all limits
+  if (isAdmin(req)) return next();
+
+  const ip = getRealIp(req);
+  const now = Date.now();
+
+  if (!ipAttempts[ip]) {
+    ipAttempts[ip] = { count: 0, firstAttempt: now };
+  }
+
+  const record = ipAttempts[ip];
+
+  // Reset window if 24 hours have passed
+  if (now - record.firstAttempt > WINDOW_MS) {
+    record.count = 0;
+    record.firstAttempt = now;
+  }
+
+  if (record.count >= MAX_DEMOS) {
+    const resetIn = Math.ceil((WINDOW_MS - (now - record.firstAttempt)) / (1000 * 60 * 60));
+    return res.status(429).json({
+      error: 'limit_reached',
+      message: `You've reached the maximum of ${MAX_DEMOS} demos. Please try again in ${resetIn} hour(s).`
+    });
+  }
+
+  record.count++;
+  console.log(`IP ${ip} — demo attempt ${record.count}/${MAX_DEMOS}`);
+  next();
+}
+
 // In-memory store for scraped content
 const contentStore = {};
 
 app.get('/', (req, res) => res.send('Proxy Running ✅'));
 
-// Store content and return a short ID
-app.post('/store', (req, res) => {
+// Store content — rate limited
+app.post('/store', checkRateLimit, (req, res) => {
   res.header('Access-Control-Allow-Origin', '*');
   try {
     const id = Math.random().toString(36).substring(2, 8);
