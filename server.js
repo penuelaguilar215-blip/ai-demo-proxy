@@ -151,5 +151,12 @@ app.post('/chat', async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
-
+// Serve Vapi config securely
+app.get('/vapi-config', (req, res) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.json({
+    vapiKey: process.env.VAPI_KEY || '',
+    vapiAsst: process.env.VAPI_ASST || ''
+  });
+});
 app.listen(PORT, () => console.log(`Proxy on port ${PORT}`));
