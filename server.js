@@ -25,7 +25,7 @@ function getRealIp(req) {
 
 function isAdmin(req) {
   const key = req.headers['x-admin-key'] || req.query.adminKey;
-  return key === ADMIN_KEY;
+  return key === ADMIN_KEY || key === KINTARI_ADMIN_KEY;
 }
 
 function checkRateLimit(req, res, next) {
