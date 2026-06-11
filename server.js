@@ -159,4 +159,12 @@ app.get('/vapi-config', (req, res) => {
     vapiAsst: process.env.VAPI_ASST || ''
   });
 });
+// Serve Vapi config for Kintari
+app.get('/vapi-config-kintari', (req, res) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.json({
+    vapiKey: process.env.KINTARI_VAPI_KEY || '',
+    vapiAsst: process.env.KINTARI_VAPI_ASST || ''
+  });
+});
 app.listen(PORT, () => console.log(`Proxy on port ${PORT}`));
