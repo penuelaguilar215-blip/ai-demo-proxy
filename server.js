@@ -168,4 +168,28 @@ app.get('/vapi-config-kintari', (req, res) => {
     vapiAsst: process.env.KINTARI_VAPI_ASST || ''
   });
 });
+
+// Send booking email
+app.post('/send-booking-email', async (req, res) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  try {
+    const { email, business_name, booking_link, notification_email } = req.body;
+    const response = await axios.post('https://api.anthropic.com/v1/messages', {
+      model: 'claude-haiku-4-5-20251001',
+      max_tokens: 100,
+      system: 'You are a helpful assistant.',
+      messages: [{ role: 'user', content: 'Say OK' }]
+    }, {
+      headers: {
+        'x-api-key': process.env.ANTHROPIC_API_KEY,
+        'anthropic-version': '2023-06-01',
+        'Content-Type': 'application/json'
+      }
+    });
+    console.log(`Booking email request: ${business_name} - ${email} - ${booking_link} - ${notification_email}`);
+    res.json({ success: true, message: 'Booking email sent' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
 app.listen(PORT, () => console.log(`Proxy on port ${PORT}`));
