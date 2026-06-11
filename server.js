@@ -10,6 +10,7 @@ app.use(express.json({ limit: '10mb' }));
 
 // ---- RATE LIMITING ----
 const ADMIN_KEY = process.env.ADMIN_KEY || 'adamo-admin-2024';
+const KINTARI_ADMIN_KEY = process.env.KINTARI_ADMIN_KEY || 'kintari-admin-2024';
 const MAX_DEMOS = 3;
 const WINDOW_MS = 24 * 60 * 60 * 1000; // 24 hours
 const ipAttempts = {}; // { ip: { count, firstAttempt } }
