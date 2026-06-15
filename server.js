@@ -192,4 +192,31 @@ app.post('/send-booking-email', async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+
+// Scrape and store in one call (bypasses Make webhook timeout)
+app.post('/scrape-and-store', checkRateLimit, async (req, res) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  try {
+    const { website_url, business_name } = req.body;
+    const scrapeRes = await axios.post('https://api.firecrawl.dev/v1/scrape', {
+      url: website_url,
+      formats: ['markdown']
+    }, {
+      headers: {
+        'Authorization': `Bearer ${process.env.FIRECRAWL_API_KEY}`,
+        'Content-Type': 'application/json'
+      },
+      timeout: 30000
+    });
+    const markdown = scrapeRes.data?.data?.markdown || '';
+    const content = `Business: ${business_name}\nWebsite: ${website_url}\n\n${markdown}`;
+    const id = Math.random().toString(36).substring(2, 8);
+    contentStore[id] = content;
+    console.log(`Scrape+store: ${business_name} → id ${id}, length ${content.length}`);
+    res.json({ id, success: true });
+  } catch (err) {
+    console.error('scrape-and-store error:', err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
 app.listen(PORT, () => console.log(`Proxy on port ${PORT}`));
