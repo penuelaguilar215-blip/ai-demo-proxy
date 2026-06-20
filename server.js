@@ -217,7 +217,7 @@ app.post('/scrape-and-store', checkRateLimit, async (req, res) => {
         await axios.patch(
           `https://api.vapi.ai/assistant/${process.env.KINTARI_VAPI_ASST}`,
           { systemPrompt: `You are a friendly AI receptionist for ${business_name}. Here is their website info:\n${content}\n\nAnswer questions about their services, location, phone numbers and hours. Be warm and concise. Never make up info not found above.` },
-          { headers: { 'Authorization': `Bearer ${process.env.KINTARI_VAPI_KEY}`, 'Content-Type': 'application/json' } }
+          { headers: { 'Authorization': `Bearer ${process.env.KINTARI_VAPI_PRIVATE_KEY}`, 'Content-Type': 'application/json' } }
         );
         console.log(`Updated Kintari Emma for ${business_name}`);
       } catch (vapiErr) {
