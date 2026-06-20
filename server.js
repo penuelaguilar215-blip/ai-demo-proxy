@@ -212,6 +212,17 @@ app.post('/scrape-and-store', checkRateLimit, async (req, res) => {
     const content = `Business: ${business_name}\nWebsite: ${website_url}\n\n${markdown}`;
     const id = Math.random().toString(36).substring(2, 8);
     contentStore[id] = content;
+    // Update Kintari Emma assistant with scraped business content
+      try {
+        await axios.patch(
+          `https://api.vapi.ai/assistant/${process.env.KINTARI_VAPI_ASST}`,
+          { systemPrompt: `You are a friendly AI receptionist for ${business_name}. Here is their website info:\n${content}\n\nAnswer questions about their services, location, phone numbers and hours. Be warm and concise. Never make up info not found above.` },
+          { headers: { 'Authorization': `Bearer ${process.env.KINTARI_VAPI_KEY}`, 'Content-Type': 'application/json' } }
+        );
+        console.log(`Updated Kintari Emma for ${business_name}`);
+      } catch (vapiErr) {
+        console.error('Vapi update error:', vapiErr.message);
+      }
     console.log(`Scrape+store: ${business_name} → id ${id}, length ${content.length}`);
     res.json({ id, success: true });
   } catch (err) {
