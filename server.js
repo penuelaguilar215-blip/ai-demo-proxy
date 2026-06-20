@@ -220,7 +220,7 @@ app.post('/scrape-and-store', checkRateLimit, async (req, res) => {
           .replace(/https?:\/\/\S+/g, '')
           .replace(/#{1,6}\s/g, '')
           .slice(0, 8000);
-        const systemPrompt = `You are a friendly AI receptionist for ${business_name}. Here is their info:\n${cleanContent}\n\nAnswer questions about their services, location, phone numbers and hours. Be warm and concise. Never read URLs out loud. Never make up info not found above.`;
+        const systemPrompt = `You are a friendly AI receptionist for ${business_name}. Here is their info:\n${cleanContent}\n\nAnswer questions about their services, location, phone numbers and hours. Be warm and concise. Never read URLs out loud. Never make up info not found above. If someone wants to book an appointment, tell them you can have someone reach out to them or they can call the business directly at the phone number above. Ask for their name and number to pass along.`;
         await axios.patch(
           `https://api.vapi.ai/assistant/${process.env.KINTARI_VAPI_ASST}`,
           { model: { provider: 'openai', model: 'gpt-4o-mini', messages: [{ role: 'system', content: systemPrompt }] } },
