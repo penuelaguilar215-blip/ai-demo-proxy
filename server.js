@@ -212,11 +212,18 @@ app.post('/scrape-and-store', checkRateLimit, async (req, res) => {
     const content = `Business: ${business_name}\nWebsite: ${website_url}\n\n${markdown}`;
     const id = Math.random().toString(36).substring(2, 8);
     contentStore[id] = content;
-    // Update Kintari Emma assistant with scraped business content
+   // Update Kintari Emma assistant with scraped business content
       try {
+        const cleanContent = content
+          .replace(/!\[.*?\]\(.*?\)/g, '')
+          .replace(/\[.*?\]\(.*?\)/g, '')
+          .replace(/https?:\/\/\S+/g, '')
+          .replace(/#{1,6}\s/g, '')
+          .slice(0, 8000);
+        const systemPrompt = `You are a friendly AI receptionist for ${business_name}. Here is their info:\n${cleanContent}\n\nAnswer questions about their services, location, phone numbers and hours. Be warm and concise. Never read URLs out loud. Never make up info not found above.`;
         await axios.patch(
           `https://api.vapi.ai/assistant/${process.env.KINTARI_VAPI_ASST}`,
-          { model: { provider: 'openai', model: 'gpt-4o-mini', messages: [{ role: 'system', content: `You are a friendly AI receptionist for ${business_name}. Here is their website info:\n${content}\n\nAnswer questions about their services, location, phone numbers and hours. Be warm and concise. Never make up info not found above.` }] } },
+          { model: { provider: 'openai', model: 'gpt-4o-mini', messages: [{ role: 'system', content: systemPrompt }] } },
           { headers: { 'Authorization': `Bearer ${process.env.KINTARI_VAPI_PRIVATE_KEY}`, 'Content-Type': 'application/json' } }
         );
         console.log(`Updated Kintari Emma for ${business_name}`);
